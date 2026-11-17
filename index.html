@@ -203,6 +203,7 @@ footer { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; color:
       <a href="#qualif">Qualif dép.</a>
       <a href="#webconf">Webconf.</a>
       <a href="#comparaison" id="lienComparaison">Comparaison</a>
+      <a href="classement.html" id="lienClassement">Classement</a>
       <a href="#progression">Progression</a>
       <a href="#ages">Par âge</a>
       <a href="#historique">Historique</a>
@@ -496,8 +497,8 @@ footer { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; color:
 
   // ---------- Comparaison avec les concurrents ----------
   function rendreComparaison(n) {
-    if (nageurs.length < 2) { $("comparaison").style.display = "none"; $("lienComparaison").style.display = "none"; return; }
-    $("comparaison").style.display = ""; $("lienComparaison").style.display = "";
+    if (nageurs.length < 2) { $("comparaison").style.display = "none"; $("lienComparaison").style.display = "none"; $("lienClassement").style.display = "none"; return; }
+    $("comparaison").style.display = ""; $("lienComparaison").style.display = ""; $("lienClassement").style.display = "";
     const bassins = bassinsDispo(perfs.filter((p) => p.nageur === n.id));
     if (!bassins.includes(etat.bassinComp)) etat.bassinComp = bassins[0] || 25;
     bascule($("basculeComp"), bassins.length ? bassins : [25], etat.bassinComp, (b) => { etat.bassinComp = b; rendreComparaison(n); });

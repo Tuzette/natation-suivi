@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Classement à la carte</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏊</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bassin: #0E4A6B;
+  --bassin-2: #13628C;
+  --carrelage: #E3F4F7;
+  --fond: #F7FCFD;
+  --surface: #FFFFFF;
+  --encre: #142630;
+  --encre-douce: #4F6672;
+  --ligne: #C9DFE5;
+  --corde: #D62839;
+  --record: #E8A500;
+  --record-fond: #FFF4D6;
+  --tableau: #0B2E40;
+  --tableau-texte: #F3FBFD;
+  --chiffre: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --texte: "Barlow", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bassin: #6CC4E0; --bassin-2: #8FD3E8; --carrelage: #12303D; --fond: #0A1E27;
+    --surface: #102833; --encre: #E6F3F7; --encre-douce: #9DB6C0; --ligne: #24485A;
+    --corde: #FF5A67; --record: #FFC233; --record-fond: #3A2E0E; --tableau: #061820; --tableau-texte: #F3FBFD;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bassin: #6CC4E0; --bassin-2: #8FD3E8; --carrelage: #12303D; --fond: #0A1E27;
+  --surface: #102833; --encre: #E6F3F7; --encre-douce: #9DB6C0; --ligne: #24485A;
+  --corde: #FF5A67; --record: #FFC233; --record-fond: #3A2E0E; --tableau: #061820; --tableau-texte: #F3FBFD;
+  color-scheme: dark;
+}
+:root { box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+html { scroll-padding-top: calc(env(safe-area-inset-top, 0px) + 64px); scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+*, *::before, *::after { box-sizing: inherit; }
+body { margin: 0; background: var(--fond); color: var(--encre); font-family: var(--texte); font-size: 1.0625rem; line-height: 1.5; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--tableau); }
+.num { font-family: var(--chiffre); font-variant-numeric: tabular-nums; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--corde); outline-offset: 2px; }
+
+/* En-tête */
+.entete { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--tableau); color: var(--tableau-texte); }
+.entete-in { max-width: 1100px; margin: 0 auto; padding: .6rem 1.25rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+.entete h1 { font-family: var(--chiffre); font-weight: 600; font-size: 1.25rem; margin: 0; letter-spacing: .01em; }
+.entete nav { display: flex; gap: .25rem 1rem; flex-wrap: wrap; margin-left: auto; font-size: .95rem; }
+.entete nav a { text-decoration: none; opacity: .85; }
+.entete nav a:hover { opacity: 1; text-decoration: underline; }
+.entete select { font: inherit; font-size: .95rem; background: transparent; color: inherit; border: 1px solid #ffffff55; border-radius: 4px; padding: .2rem .4rem; }
+.entete select option { color: #142630; }
+
+/* Ligne d'eau : le motif du site, sous l'en-tête et entre les sections */
+.corde { height: 6px; background: repeating-linear-gradient(90deg, var(--corde) 0 14px, #fff 14px 20px, var(--bassin-2) 20px 34px, #fff 34px 40px); }
+
+main { max-width: 1100px; margin: 0 auto; padding: 0 1.25rem 4rem; }
+section { padding: 2.5rem 0 1rem; }
+h2 { font-family: var(--chiffre); font-weight: 700; font-size: 2rem; line-height: 1.1; margin: 0 0 .35rem; color: var(--bassin); }
+.intro { color: var(--encre-douce); margin: 0 0 1.25rem; max-width: 65ch; }
+
+/* Tableau d'affichage (dernière compétition) */
+.panneau { margin-top: 2rem; background: var(--tableau); color: var(--tableau-texte); border-radius: 10px; overflow: hidden; }
+.panneau-tete { padding: 1.4rem 1.5rem 1rem; display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; align-items: end; }
+.nageur-nom { font-family: var(--chiffre); font-size: clamp(2.4rem, 7vw, 4rem); font-weight: 700; line-height: .95; margin: 0; }
+.nageur-nom span { display: block; font-weight: 500; opacity: .75; font-size: .5em; margin-top: .3rem; }
+.panneau-meta { text-align: right; font-size: .95rem; opacity: .85; }
+.panneau-meta strong { display: block; font-family: var(--chiffre); font-size: 1.35rem; font-weight: 600; opacity: 1; }
+.lignes { list-style: none; margin: 0; padding: 0; }
+.lignes li { display: grid; grid-template-columns: 2.2rem 1fr auto auto; gap: .75rem; align-items: baseline; padding: .55rem 1.5rem; border-top: 1px solid #ffffff1c; }
+.lignes li:nth-child(odd) { background: #ffffff08; }
+.lignes .couloir { font-family: var(--chiffre); opacity: .5; }
+.lignes .epreuve { font-family: var(--chiffre); font-size: 1.3rem; font-weight: 500; }
+.lignes .temps { font-family: var(--chiffre); font-variant-numeric: tabular-nums; font-size: 1.9rem; font-weight: 700; color: #FFD45C; letter-spacing: .02em; }
+.lignes .pts { font-size: .9rem; opacity: .7; min-width: 4.5rem; text-align: right; }
+.badge { display: inline-block; font-family: var(--chiffre); font-weight: 700; font-size: .85rem; padding: .05rem .45rem; border-radius: 3px; background: var(--record); color: #1f1500; margin-left: .5rem; vertical-align: middle; }
+.badge.premier { background: transparent; color: inherit; border: 1px solid currentColor; opacity: .7; font-weight: 500; }
+.gain { font-size: .85rem; opacity: .75; margin-left: .35rem; }
+.chiffres { display: flex; flex-wrap: wrap; gap: 1.5rem 2.5rem; padding: 1rem 1.5rem 1.3rem; border-top: 1px solid #ffffff1c; font-size: .95rem; }
+.chiffres b { font-family: var(--chiffre); font-size: 1.6rem; display: block; line-height: 1.1; }
+
+/* Contrôles */
+.controles { display: flex; flex-wrap: wrap; gap: .75rem 1.25rem; align-items: end; margin-bottom: 1.25rem; }
+.controles label { display: flex; flex-direction: column; font-size: .85rem; color: var(--encre-douce); gap: .2rem; }
+select, .bascule button { font: inherit; font-size: 1rem; color: var(--encre); background: var(--surface); border: 1px solid var(--ligne); border-radius: 6px; padding: .4rem .6rem; }
+.bascule { display: inline-flex; border: 1px solid var(--ligne); border-radius: 6px; overflow: hidden; }
+.bascule button { border: 0; border-radius: 0; cursor: pointer; padding: .4rem .9rem; }
+.bascule button[aria-pressed="true"] { background: var(--bassin); color: var(--fond); }
+
+/* Records : une colonne par nage, comme les couloirs */
+.records { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 0; border: 1px solid var(--ligne); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.nage { border-left: 1px solid var(--ligne); }
+.nage:first-child { border-left: 0; }
+.nage h3 { margin: 0; padding: .7rem 1rem; font-family: var(--chiffre); font-weight: 600; font-size: 1.3rem; background: var(--carrelage); color: var(--bassin); }
+.rec { padding: .75rem 1rem; border-top: 1px solid var(--ligne); }
+.rec .dist { font-size: .9rem; color: var(--encre-douce); }
+.rec .t { font-family: var(--chiffre); font-variant-numeric: tabular-nums; font-size: 2rem; font-weight: 700; line-height: 1.05; }
+.rec .info { font-size: .85rem; color: var(--encre-douce); }
+.rec.vide .t { color: var(--ligne); }
+.rec.recent { background: var(--record-fond); }
+.rec.recent .t::after { content: "nouveau"; font-family: var(--texte); font-size: .75rem; font-weight: 600; color: var(--encre); background: var(--record); border-radius: 3px; padding: 0 .35rem; margin-left: .45rem; vertical-align: middle; }
+
+/* Graphique */
+.graphe { background: var(--surface); border: 1px solid var(--ligne); border-radius: 10px; padding: 1rem; position: relative; }
+.graphe svg { width: 100%; height: auto; display: block; overflow: visible; }
+.graphe .axe { stroke: var(--ligne); }
+.graphe .etiq { fill: var(--encre-douce); font-family: var(--chiffre); font-size: 13px; }
+.graphe .courbe { fill: none; stroke: var(--bassin-2); stroke-width: 2.5; stroke-linejoin: round; }
+.graphe .pt { fill: var(--surface); stroke: var(--bassin-2); stroke-width: 2; cursor: pointer; }
+.graphe .pt.rp { fill: var(--record); stroke: var(--record); }
+.graphe .pt:hover, .graphe .pt:focus { stroke: var(--corde); stroke-width: 3; outline: none; }
+.bulle { position: absolute; pointer-events: none; background: var(--tableau); color: var(--tableau-texte); padding: .4rem .6rem; border-radius: 6px; font-size: .9rem; white-space: nowrap; transform: translate(-50%, -115%); display: none; }
+.bulle b { font-family: var(--chiffre); font-size: 1.2rem; }
+.legende { font-size: .85rem; color: var(--encre-douce); margin-top: .6rem; display: flex; gap: 1.2rem; flex-wrap: wrap; }
+.legende i { display: inline-block; width: .8rem; height: .8rem; border-radius: 50%; vertical-align: -1px; margin-right: .3rem; border: 2px solid var(--bassin-2); }
+.legende i.rp { background: var(--record); border-color: var(--record); }
+
+/* Tableaux */
+.defile { overflow-x: auto; border: 1px solid var(--ligne); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: .95rem; }
+th, td { padding: .5rem .8rem; text-align: left; border-bottom: 1px solid var(--ligne); white-space: nowrap; }
+thead th { background: var(--carrelage); color: var(--bassin); font-family: var(--chiffre); font-weight: 600; font-size: 1.05rem; position: sticky; top: 0; }
+td.t { font-family: var(--chiffre); font-variant-numeric: tabular-nums; font-size: 1.15rem; font-weight: 600; }
+td.best { background: var(--record-fond); }
+td .sous { display: block; white-space: normal; font-size: .78rem; color: var(--encre-douce); font-family: var(--texte); font-weight: 400; }
+tbody tr:last-child td { border-bottom: 0; }
+
+/* Historique par compétition */
+.compet { border: 1px solid var(--ligne); border-radius: 10px; background: var(--surface); margin-bottom: 1rem; overflow: hidden; }
+.compet-tete { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; padding: .7rem 1rem; background: var(--carrelage); }
+.compet-tete b { font-family: var(--chiffre); font-size: 1.25rem; color: var(--bassin); font-weight: 600; }
+.compet-tete span { color: var(--encre-douce); font-size: .9rem; }
+.compet table { table-layout: fixed; min-width: 420px; }
+.compet table td { border-bottom: 1px solid var(--ligne); white-space: normal; }
+.compet table tr:last-child td { border-bottom: 0; }
+.vide-msg { color: var(--encre-douce); padding: 1rem 0; }
+
+
+/* Qualification départementaux */
+.qualif-resume { display: flex; gap: 1.5rem 2.5rem; flex-wrap: wrap; align-items: baseline; margin-bottom: 1rem; }
+.qualif-resume b { font-family: var(--chiffre); font-size: 2.6rem; line-height: 1; color: var(--bassin); }
+.qualif-resume span { color: var(--encre-douce); }
+td.ecart { font-family: var(--chiffre); font-variant-numeric: tabular-nums; font-size: 1.05rem; }
+td.ecart.ok { color: var(--encre-douce); }
+td.ecart.ko { color: var(--corde); font-weight: 600; }
+tr.non-nage td { color: var(--encre-douce); }
+.etat { font-size: .85rem; font-weight: 600; padding: .1rem .5rem; border-radius: 3px; white-space: nowrap; }
+.etat.ok { background: var(--record); color: #1f1500; }
+.etat.ko { border: 1px solid var(--corde); color: var(--corde); }
+.etat.vide { border: 1px solid var(--ligne); color: var(--encre-douce); }
+
+/* Webconfrontation */
+.jauge { height: 14px; border-radius: 7px; background: var(--carrelage); border: 1px solid var(--ligne); overflow: hidden; margin: .4rem 0 1.25rem; max-width: 640px; position: relative; }
+.jauge i { display: block; height: 100%; background: var(--bassin-2); }
+.jauge i.ok { background: var(--record); }
+tfoot td, tfoot th { font-family: var(--chiffre); font-size: 1.2rem; font-weight: 700; border-top: 2px solid var(--encre); border-bottom: 0; }
+/* Comparaison */
+.sous-titre { font-family: var(--chiffre); font-weight: 600; font-size: 1.3rem; margin: 0 0 .6rem; }
+tr.moi td, tr.moi th { background: var(--record-fond); font-weight: 600; }
+tr.cliquable { cursor: pointer; }
+tr.cliquable:hover td, tr.cliquable:hover th { background: var(--carrelage); }
+.rang { font-family: var(--chiffre); font-size: 1.15rem; font-weight: 700; }
+.club { display: block; font-size: .78rem; color: var(--encre-douce); font-weight: 400; }
+td.plus { color: var(--corde); font-family: var(--chiffre); }
+td.moins { color: var(--encre-douce); font-family: var(--chiffre); }
+/* Boutons de mise à jour */
+.maj { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: .75rem; }
+.maj a { display: inline-block; text-decoration: none; font-weight: 600; font-size: .95rem; padding: .55rem 1rem; border-radius: 6px; background: var(--bassin); color: var(--fond); }
+.maj a:hover { background: var(--bassin-2); }
+.maj p { flex-basis: 100%; margin: 0; }
+footer { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; color: var(--encre-douce); font-size: .85rem; }
+
+@media (max-width: 640px) {
+  .entete nav { margin-left: 0; width: 100%; }
+  .lignes li { grid-template-columns: 1fr auto; padding: .55rem 1rem; }
+  .lignes .couloir { display: none; }
+  .lignes .pts { grid-column: 1 / -1; text-align: left; margin-top: -.4rem; }
+  .panneau-meta { text-align: left; }
+  h2 { font-size: 1.7rem; }
+}
+</style>
+<style>
+.requete { background: var(--surface); border: 1px solid var(--ligne); border-radius: 10px; padding: 1.25rem; display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.requete fieldset { border: 0; margin: 0; padding: 0; }
+.requete legend { font-family: var(--chiffre); font-weight: 600; font-size: 1.2rem; color: var(--bassin); margin-bottom: .5rem; padding: 0; }
+.choix { display: flex; align-items: center; gap: .55rem; padding: .3rem 0; cursor: pointer; }
+.choix input { width: 1.1rem; height: 1.1rem; accent-color: var(--bassin); }
+.choix input[type=date] { width: auto; height: auto; font: inherit; color: var(--encre); background: var(--surface); border: 1px solid var(--ligne); border-radius: 6px; padding: .25rem .4rem; }
+.actions { grid-column: 1 / -1; display: flex; gap: .75rem; flex-wrap: wrap; align-items: center; }
+.btn { font: inherit; font-weight: 600; padding: .6rem 1.2rem; border-radius: 6px; border: 0; cursor: pointer; background: var(--bassin); color: var(--fond); }
+.btn:hover { background: var(--bassin-2); }
+.btn.second { background: transparent; color: var(--bassin); border: 1px solid var(--bassin); }
+.alerte { color: var(--corde); font-size: .95rem; }
+#resultat { margin-top: 2rem; }
+#resultat h3 { font-family: var(--chiffre); font-weight: 700; font-size: 1.6rem; color: var(--bassin); margin: 0; }
+#resultat .regle { color: var(--encre-douce); margin: .2rem 0 1rem; }
+.crit { font-family: var(--chiffre); font-variant-numeric: tabular-nums; }
+.crit b { font-size: 1.15rem; }
+.crit .sous { display: block; font-size: .8rem; color: var(--encre-douce); font-family: var(--texte); }
+td.total { font-family: var(--chiffre); font-size: 1.45rem; font-weight: 700; text-align: right; }
+td.manque { color: var(--encre-douce); }
+.club { display: block; font-size: .78rem; color: var(--encre-douce); font-weight: 400; }
+tr.moi td, tr.moi th { background: var(--record-fond); font-weight: 600; }
+.rang { font-family: var(--chiffre); font-size: 1.15rem; font-weight: 700; }
+</style>
+</head>
+<body>
+<header class="entete">
+  <div class="entete-in">
+    <h1>Classement à la carte</h1>
+    <nav aria-label="Navigation"><a href="index.html">← Suivi des temps</a></nav>
+  </div>
+  <div class="corde" aria-hidden="true"></div>
+</header>
+<main>
+  <section>
+    <h2>Composer un classement</h2>
+    <p class="intro">Coche les épreuves à additionner et choisis la période. Pour chaque critère, on retient la course qui rapporte le plus de points FFN ; « n°2 » prend la meilleure course d’une autre nage que le n°1. Tous bassins confondus.</p>
+    <form class="requete" id="form" onsubmit="return false">
+      <fieldset id="criteres"><legend>Épreuves</legend></fieldset>
+      <fieldset>
+        <legend>Période</legend>
+        <label class="choix"><input type="radio" name="periode" value="toutes"> Toutes les courses</label>
+        <label class="choix"><input type="radio" name="periode" value="depuis" checked> Depuis le <input type="date" id="debut" value="2026-09-01" aria-label="Date de début"></label>
+      </fieldset>
+      <div class="actions">
+        <button type="button" class="btn" id="lancer">Lancer le classement</button>
+        <button type="button" class="btn second" id="copier" hidden>Copier le tableau</button>
+        <span id="message" class="alerte" role="status"></span>
+      </div>
+    </form>
+    <div id="resultat"></div>
+  </section>
+</main>
+<footer><p id="pied"></p></footer>
+<script src="donnees.js"></script>
+<script src="donnees-ffn.js" onerror="window.PERFORMANCES_FFN=[]"></script>
+<script>
+(function () {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const MOIS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+  const enSecondes = (t) => { const p = String(t).trim().split(":"); return p.length === 2 ? Number(p[0]) * 60 + Number(p[1]) : Number(p[0]); };
+  const enTemps = (s) => { const m = Math.floor(s / 60), r = s - m * 60; return m ? m + ":" + r.toFixed(2).padStart(5, "0") : r.toFixed(2); };
+  const dateCourte = (d) => { const [a, m, j] = d.split("-").map(Number); return (j === 1 ? "1er" : j) + " " + MOIS[m - 1] + " " + a; };
+
+  const C50 = ["50 NL", "50 Dos", "50 Brasse", "50 Papillon"];
+  const C100 = ["100 NL", "100 Dos", "100 Brasse", "100 Papillon"];
+  // Critères proposés. « groupe » relie un n°1 et un n°2 (épreuves différentes).
+  const CRITERES = [
+    { id: "50a",  libelle: "Meilleur 50 m",            court: "50 m n°1",  parmi: C50,  rang: 1, groupe: "50" },
+    { id: "50b",  libelle: "2e meilleur 50 m",          court: "50 m n°2",  parmi: C50,  rang: 2, groupe: "50" },
+    { id: "100a", libelle: "Meilleur 100 m (hors 4 N)",  court: "100 m n°1", parmi: C100, rang: 1, groupe: "100" },
+    { id: "100b", libelle: "2e meilleur 100 m (hors 4 N)", court: "100 m n°2", parmi: C100, rang: 2, groupe: "100" },
+    { id: "1004n", libelle: "100 4 Nages",              court: "100 4N",    parmi: ["100 4 Nages"], rang: 1 },
+    { id: "2004n", libelle: "200 4 Nages",              court: "200 4N",    parmi: ["200 4 Nages"], rang: 1 },
+    { id: "200nl", libelle: "200 Crawl",                court: "200 NL",    parmi: ["200 NL"], rang: 1 },
+    { id: "400nl", libelle: "400 Crawl",                court: "400 NL",    parmi: ["400 NL"], rang: 1 },
+  ];
+  $("criteres").insertAdjacentHTML("beforeend", CRITERES.map((c) =>
+    `<label class="choix"><input type="checkbox" value="${c.id}"> ${esc(c.libelle)}</label>`).join(""));
+
+  // Données : courses saisies à la main + courses FFN, sans doublons
+  const nageurs = (typeof NAGEURS !== "undefined" ? NAGEURS : []);
+  const vus = new Set(), perfs = [];
+  for (const p of [...(typeof PERFORMANCES !== "undefined" ? PERFORMANCES : []), ...(typeof PERFORMANCES_FFN !== "undefined" ? PERFORMANCES_FFN : [])]) {
+    const sec = enSecondes(p.temps);
+    const cle = [p.nageur, p.epreuve, Number(p.bassin) || 25, p.date, sec.toFixed(2)].join("|");
+    if (vus.has(cle) || isNaN(sec) || p.points == null) continue;
+    vus.add(cle); perfs.push({ ...p, sec });
+  }
+  const suivi = (nageurs.find((n) => n.suivi) || {}).id;
+
+  // Dernière requête mémorisée dans ce navigateur (pratique, non indispensable)
+  try {
+    const m = JSON.parse(localStorage.getItem("classement-requete") || "null");
+    if (m) {
+      document.querySelectorAll("#criteres input").forEach((i) => (i.checked = m.criteres.includes(i.value)));
+      document.querySelector(`input[name=periode][value=${m.periode}]`).checked = true;
+      if (m.debut) $("debut").value = m.debut;
+    }
+  } catch (e) { /* stockage indisponible : on garde les valeurs par défaut */ }
+
+  let dernierTableau = null;
+
+  function lancer() {
+    const choisis = CRITERES.filter((c) => document.querySelector(`#criteres input[value="${c.id}"]`).checked);
+    const periode = document.querySelector("input[name=periode]:checked").value;
+    const debut = periode === "depuis" ? $("debut").value : "";
+    $("message").textContent = "";
+    if (!choisis.length) { $("message").textContent = "Coche au moins une épreuve."; return; }
+    if (periode === "depuis" && !debut) { $("message").textContent = "Indique une date de début."; return; }
+    try { localStorage.setItem("classement-requete", JSON.stringify({ criteres: choisis.map((c) => c.id), periode, debut })); } catch (e) {}
+
+    const dans = perfs.filter((p) => !debut || p.date >= debut);
+    const lignes = nageurs.map((n) => {
+      // Meilleure course (en points) de chaque épreuve
+      const best = {};
+      for (const p of dans) if (p.nageur === n.id && (!best[p.epreuve] || p.points > best[p.epreuve].points)) best[p.epreuve] = p;
+      let total = 0;
+      const cases = choisis.map((c) => {
+        const cand = c.parmi.map((e) => best[e]).filter(Boolean).sort((a, b) => b.points - a.points);
+        const r = cand[c.rang - 1] || null;
+        if (r) total += r.points;
+        return r;
+      });
+      return { n, cases, total };
+    }).filter((l) => l.total > 0).sort((a, b) => b.total - a.total);
+
+    // Titre et description de la requête
+    const desc = [];
+    const g50 = choisis.filter((c) => c.groupe === "50"), g100 = choisis.filter((c) => c.groupe === "100");
+    const decrire = (g, d) => g.length === 2 ? `2 meilleurs ${d} m de nages différentes` : g[0].rang === 1 ? `meilleur ${d} m` : `2e meilleur ${d} m`;
+    if (g50.length) desc.push(decrire(g50, 50));
+    if (g100.length) desc.push(decrire(g100, 100) + " (hors 4 nages)");
+    choisis.filter((c) => !c.groupe).forEach((c) => desc.push("meilleur " + c.libelle));
+    const titre = "Classement " + (debut ? "depuis le " + dateCourte(debut) : "toutes courses confondues");
+    const regle = desc.join(" + ");
+
+    if (!lignes.length) {
+      $("resultat").innerHTML = `<h3>${esc(titre)}</h3><p class="regle">(${esc(regle)})</p><p class="vide-msg">Aucun nageur n’a de course correspondante sur cette période.</p>`;
+      $("copier").hidden = true; dernierTableau = null; return;
+    }
+    const corps = lignes.map((l, i) => `<tr class="${l.n.id === suivi ? "moi" : ""}"><td class="rang">${i + 1}</td>
+      <th scope="row">${esc(l.n.prenom)} ${esc(l.n.nom)}<span class="club">${esc(l.n.club || "")}</span></th>
+      ${l.cases.map((r) => r ? `<td class="crit"><b>${r.points}</b><span class="sous">${esc(r.epreuve)} · ${enTemps(r.sec)}<br>${dateCourte(r.date)}${r.bassin == 50 ? " · 50 m" : ""}</span></td>` : `<td class="manque">–</td>`).join("")}
+      <td class="total">${l.total}</td></tr>`).join("");
+    const absents = nageurs.length - lignes.length;
+    $("resultat").innerHTML = `<h3>${esc(titre)}</h3><p class="regle">(${esc(regle.charAt(0).toUpperCase() + regle.slice(1))})</p>
+      <div class="defile"><table><thead><tr><th>Rang</th><th>Nageur</th>${choisis.map((c) => `<th>${esc(c.court)}</th>`).join("")}<th style="text-align:right">Total</th></tr></thead><tbody>${corps}</tbody></table></div>
+      ${absents ? `<p class="note" style="color:var(--encre-douce);font-size:.9rem">${absents} nageur${absents > 1 ? "s" : ""} sans aucune course correspondante ne ${absents > 1 ? "sont" : "est"} pas classé${absents > 1 ? "s" : ""}.</p>` : ""}`;
+
+    // Version texte pour le bouton « Copier » (se colle dans Excel ou un mail)
+    dernierTableau = [titre + " (" + regle + ")", ["Rang", "Nageur", ...choisis.map((c) => c.court), "Total"].join("\t"),
+      ...lignes.map((l, i) => [i + 1, l.n.prenom + " " + l.n.nom, ...l.cases.map((r) => r ? `${r.epreuve} ${enTemps(r.sec)} (${r.points})` : "-"), l.total].join("\t"))].join("\n");
+    $("copier").hidden = false;
+  }
+
+  $("lancer").onclick = lancer;
+  $("copier").onclick = async () => {
+    try { await navigator.clipboard.writeText(dernierTableau); $("message").textContent = "Tableau copié."; }
+    catch (e) { $("message").textContent = "Copie impossible dans ce navigateur."; }
+  };
+  const derniere = perfs.reduce((m, p) => (p.date > m ? p.date : m), "");
+  $("pied").textContent = derniere ? "Données à jour au " + dateCourte(derniere) + "." : "";
+})();
+</script>
+</body>
+</html>
