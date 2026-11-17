@@ -154,32 +154,6 @@ const PERFORMANCES = [
 
 const GRILLES_DEPARTEMENTAUX = [
   // --- Messieurs ---
-  { nom: "U10 et -", sexe: "H", temps: {
-    "50 NL":        "41.78",
-    "100 NL":       "1:29.40",
-    "200 NL":       "3:08.77",
-    "50 Dos":       "47.98",
-    "100 Dos":      "1:41.47",
-    "50 Brasse":    "52.93",
-    "100 Brasse":   "1:52.65",
-    "50 Papillon":  "44.25",
-    "100 Papillon": "1:40.27",
-    "100 4 Nages":  "1:40.47",
-    "200 4 Nages":  "3:30.73",
-  } },
-  { nom: "U11", sexe: "H", temps: {
-    "50 NL":        "40.32",
-    "100 NL":       "1:26.38",
-    "200 NL":       "3:02.72",
-    "50 Dos":       "46.25",
-    "100 Dos":      "1:37.88",
-    "50 Brasse":    "51.01",
-    "100 Brasse":   "1:48.80",
-    "50 Papillon":  "42.73",
-    "100 Papillon": "1:36.76",
-    "100 4 Nages":  "1:37.08",
-    "200 4 Nages":  "3:23.91",
-  } },
   { nom: "U12-U13", sexe: "H", temps: {
     "50 NL":        "38.99",
     "100 NL":       "1:23.60",
