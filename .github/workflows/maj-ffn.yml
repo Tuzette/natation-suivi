@@ -1,0 +1,29 @@
+name: Mise à jour depuis la FFN
+
+on:
+  workflow_dispatch:       # lancé à la main : bouton « Run workflow » sur GitHub
+
+permissions:
+  contents: write
+
+jobs:
+  maj:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests==2.32.3 beautifulsoup4==4.12.3
+      - run: python scripts/maj_ffn.py
+      - name: Enregistrer les nouvelles courses
+        run: |
+          if [ -n "$(git status --porcelain donnees-ffn.js)" ]; then
+            git config user.name "maj-ffn"
+            git config user.email "maj-ffn@users.noreply.github.com"
+            git add donnees-ffn.js
+            git commit -m "Mise à jour automatique des courses FFN"
+            git push
+          else
+            echo "Aucune nouvelle course."
+          fi
