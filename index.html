@@ -200,8 +200,8 @@ footer { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; color:
     </label>
     <nav aria-label="Sections">
       <a href="#records">Records</a>
-      <a href="#qualif">Qualif dép.</a>
-      <a href="#webconf">Webconf.</a>
+      <a href="#qualif" id="lienQualif">Qualif dép.</a>
+      <a href="#webconf" id="lienWebconf">Webconf.</a>
       <a href="#comparaison" id="lienComparaison">Comparaison</a>
       <a href="classement.html" id="lienClassement">Classement</a>
       <a href="#progression">Progression</a>
@@ -226,7 +226,7 @@ footer { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; color:
 
 
   <section id="qualif">
-    <h2 id="qualifTitre">Qualification aux départementaux benjamins</h2>
+    <h2 id="qualifTitre">Qualification aux départementaux</h2>
     <p class="intro">Chaque épreuve est qualifiée quand le meilleur temps est inférieur ou égal au temps de la grille. L’écart indique ce qu’il reste à gagner, ou l’avance prise.</p>
     <div id="qualifResume" class="qualif-resume"></div>
     <div class="defile" id="tableQualif"></div>
@@ -397,7 +397,7 @@ footer { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; color:
     $("panneau").innerHTML = `
       <div class="panneau">
         <div class="panneau-tete">
-          <p class="nageur-nom">${esc(n.prenom)} ${esc(n.nom)}<span>${esc(n.club || "")} · ${ageActuel} ans (né en ${n.naissance})</span></p>
+          <p class="nageur-nom">${esc(n.prenom)} ${esc(n.nom)}<span>${esc(n.club || "")} · ${ageActuel} ans (né${n.sexe === "F" ? "e" : ""} en ${n.naissance})</span></p>
           <div class="panneau-meta">Dernière compétition<strong>${esc(lieuJoli(der.lieu))}</strong>${datesCompet(der)}${der.niveaux.length ? " · " + esc(der.niveaux.join(", ")) : ""}</div>
         </div>
         <ol class="lignes">${lignes}</ol>
@@ -435,37 +435,46 @@ footer { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; color:
 
 
   // ---------- Qualification départementaux benjamins ----------
-  function rendreQualif(liste) {
-    const g = (typeof GRILLE_DEPARTEMENTAUX !== "undefined" ? GRILLE_DEPARTEMENTAUX : null);
-    if (!g || !g.temps) { $("qualif").style.display = "none"; return; }
-    $("qualif").style.display = "";
-    $("qualifTitre").textContent = "Qualification aux " + (g.nom || "départementaux").replace(/^./, (c) => c.toLowerCase());
-    const eps = Object.keys(g.temps).sort((a, b) => ordreEpreuve(a) - ordreEpreuve(b));
-    let ok = 0, nages = 0;
+  function rendreQualif(liste, n) {
+    // Une ou plusieurs grilles : GRILLES_DEPARTEMENTAUX (liste) ou GRILLE_DEPARTEMENTAUX (une seule)
+    const grilles = (typeof GRILLES_DEPARTEMENTAUX !== "undefined" ? GRILLES_DEPARTEMENTAUX
+      : typeof GRILLE_DEPARTEMENTAUX !== "undefined" ? [GRILLE_DEPARTEMENTAUX] : [])
+      .filter((g) => g && g.temps && (!g.sexe || g.sexe === ((n && n.sexe) || "H")));
+    if (!grilles.length) { $("qualif").style.display = "none"; $("lienQualif").style.display = "none"; return; }
+    $("qualif").style.display = ""; $("lienQualif").style.display = "";
+    $("qualifTitre").textContent = grilles.length === 1
+      ? "Qualification aux " + (grilles[0].nom || "départementaux").replace(/^./, (c) => c.toLowerCase())
+      : "Qualification aux départementaux";
+    const eps = [...new Set(grilles.flatMap((g) => Object.keys(g.temps)))].sort((a, b) => ordreEpreuve(a) - ordreEpreuve(b));
+    const stats = grilles.map(() => ({ ok: 0, nages: 0 }));
     const lignes = eps.map((ep) => {
-      const ref = enSecondes(g.temps[ep]);
       const courses = liste.filter((p) => p.epreuve === ep);
-      if (!courses.length) return `<tr class="non-nage"><th scope="row">${esc(ep)}</th><td>–</td><td class="t">${enTemps(ref)}</td><td></td><td><span class="etat vide">Pas encore nagé</span></td></tr>`;
-      nages++;
-      const best = courses.reduce((a, b) => (b.sec < a.sec ? b : a));
-      const ecart = Math.round((best.sec - ref) * 100) / 100;
-      const qualifie = ecart <= 0;
-      if (qualifie) ok++;
-      return `<tr><th scope="row">${esc(ep)}</th>
-        <td class="t">${enTemps(best.sec)}<span class="sous">${dateCourte(best.date)}${best.bassin === 50 ? " · bassin 50 m" : ""}</span></td>
-        <td class="t">${enTemps(ref)}</td>
-        <td class="ecart ${qualifie ? "ok" : "ko"}">${qualifie ? "−" + Math.abs(ecart).toFixed(2) + " s d’avance" : "+" + ecart.toFixed(2) + " s à gagner"}</td>
-        <td><span class="etat ${qualifie ? "ok" : "ko"}">${qualifie ? "Qualifié" : "Pas encore"}</span></td></tr>`;
+      const best = courses.length ? courses.reduce((a, b) => (b.sec < a.sec ? b : a)) : null;
+      const cellules = grilles.map((g, k) => {
+        if (!g.temps[ep]) return `<td class="t" style="color:var(--encre-douce)">–</td><td></td>`;
+        const ref = enSecondes(g.temps[ep]);
+        if (!best) return `<td class="t">${enTemps(ref)}</td><td><span class="etat vide">Pas encore nagé</span></td>`;
+        stats[k].nages++;
+        const ecart = Math.round((best.sec - ref) * 100) / 100;
+        const qualifie = ecart <= 0;
+        if (qualifie) stats[k].ok++;
+        return `<td class="t">${enTemps(ref)}</td>
+          <td><span class="etat ${qualifie ? "ok" : "ko"}">${qualifie ? "Qualifié" : "Pas encore"}</span><span class="sous" style="display:block;font-size:.85rem;margin-top:.15rem;color:${qualifie ? "var(--encre-douce)" : "var(--corde)"}">${qualifie ? "−" + Math.abs(ecart).toFixed(2) + " s d’avance" : "+" + ecart.toFixed(2) + " s à gagner"}</span></td>`;
+      }).join("");
+      return `<tr class="${best ? "" : "non-nage"}"><th scope="row">${esc(ep)}</th>
+        <td class="t">${best ? enTemps(best.sec) + `<span class="sous">${dateCourte(best.date)}${best.bassin === 50 ? " · bassin 50 m" : ""}</span>` : "–"}</td>${cellules}</tr>`;
     }).join("");
-    $("qualifResume").innerHTML = `<div><b>${ok}</b> <span>épreuve${ok > 1 ? "s" : ""} qualifiée${ok > 1 ? "s" : ""} sur ${nages} nagée${nages > 1 ? "s" : ""}</span></div>`;
-    $("tableQualif").innerHTML = `<table><thead><tr><th>Épreuve</th><th>Meilleur temps</th><th>Temps qualif</th><th>Écart</th><th>Statut</th></tr></thead><tbody>${lignes}</tbody></table>`;
+    $("qualifResume").innerHTML = grilles.map((g, k) => `<div><b>${stats[k].ok}</b> <span>épreuve${stats[k].ok > 1 ? "s" : ""} qualifiée${stats[k].ok > 1 ? "s" : ""} sur ${stats[k].nages} nagée${stats[k].nages > 1 ? "s" : ""}${grilles.length > 1 ? " · " + esc(g.nom || "") : ""}</span></div>`).join("");
+    $("tableQualif").innerHTML = `<table><thead><tr><th rowspan="${grilles.length > 1 ? 2 : 1}">Épreuve</th><th rowspan="${grilles.length > 1 ? 2 : 1}">Meilleur temps</th>${
+      grilles.length > 1 ? grilles.map((g) => `<th colspan="2" style="text-align:center">${esc(g.nom || "")}</th>`).join("") + `</tr><tr>` : ""}${
+      grilles.map(() => `<th>Temps qualif</th><th>Statut</th>`).join("")}</tr></thead><tbody>${lignes}</tbody></table>`;
   }
 
   // ---------- Webconfrontation benjamin ----------
   function rendreWebconf(liste) {
     const w = (typeof WEBCONFRONTATION !== "undefined" ? WEBCONFRONTATION : null);
-    if (!w || !w.criteres) { $("webconf").style.display = "none"; return; }
-    $("webconf").style.display = "";
+    if (!w || !w.criteres) { $("webconf").style.display = "none"; $("lienWebconf").style.display = "none"; return; }
+    $("webconf").style.display = ""; $("lienWebconf").style.display = "";
     // Seules les courses de la période de qualification comptent
     const dansPeriode = liste.filter((p) => (!w.debut || p.date >= w.debut) && (!w.fin || p.date <= w.fin));
     $("webconfPeriode").textContent = w.debut && w.fin ? "entre le " + dateCourte(w.debut) + " et le " + dateCourte(w.fin) : "pendant la période de qualification";
@@ -679,7 +688,7 @@ footer { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; color:
     const liste = perfsDu(n.id);
     rendrePanneau(n, liste);
     rendreRecords(liste);
-    rendreQualif(liste);
+    rendreQualif(liste, n);
     rendreWebconf(liste);
     rendreComparaison(n);
     rendreProgressionControles(liste);
