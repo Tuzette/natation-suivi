@@ -18,17 +18,15 @@ jobs:
           python-version: "3.12"
       - run: pip install requests==2.32.3 beautifulsoup4==4.12.3
       - run: python scripts/maj_ffn.py
-      - name: Enregistrer les nouvelles courses
+      - name: Noter la date de la mise à jour
+        run: echo "const DERNIERE_MAJ = \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\";" > maj.js
+      - name: Enregistrer les nouvelles courses et la date
         run: |
-          if [ -n "$(git status --porcelain donnees-ffn.js)" ]; then
-            git config user.name "maj-ffn"
-            git config user.email "maj-ffn@users.noreply.github.com"
-            git add donnees-ffn.js
-            git commit -m "Mise à jour automatique des courses FFN"
-            git push
-          else
-            echo "Aucune nouvelle course."
-          fi
+          git config user.name "maj-ffn"
+          git config user.email "maj-ffn@users.noreply.github.com"
+          git add donnees-ffn.js maj.js
+          git commit -m "Mise à jour automatique des courses FFN"
+          git push
       - name: Mettre à jour le site de Luka (ses courses uniquement)
         env:
           CLE: ${{ secrets.CLE_SITE_LUKA }}
@@ -40,13 +38,10 @@ jobs:
           garde = [l for l in lignes if not l.startswith("  { nageur:") or 'nageur: "luka"' in l]
           open("luka/donnees-ffn.js", "w", encoding="utf-8").write("\n".join(garde) + "\n")
           PY
+          cp maj.js luka/maj.js
           cd luka
-          if [ -n "$(git status --porcelain donnees-ffn.js)" ]; then
-            git config user.name "maj-ffn"
-            git config user.email "maj-ffn@users.noreply.github.com"
-            git add donnees-ffn.js
-            git commit -m "Mise à jour automatique des courses FFN"
-            git push
-          else
-            echo "Site de Luka déjà à jour."
-          fi
+          git config user.name "maj-ffn"
+          git config user.email "maj-ffn@users.noreply.github.com"
+          git add donnees-ffn.js maj.js
+          git commit -m "Mise à jour automatique des courses FFN"
+          git push
