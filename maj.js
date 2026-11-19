@@ -1,0 +1,1 @@
+const DERNIERE_MAJ = "2026-11-19T15:29:00Z";
