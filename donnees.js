@@ -333,14 +333,12 @@ const WEBCONFRONTATION = {
 // =====================================================================
 //  BOUTONS DE MISE À JOUR (en bas du site)
 // =====================================================================
-//  Chaque bouton ouvre la page GitHub qui lance la récupération des
-//  courses sur la FFN. Remplacer « natation-suivi » par le nom exact
-//  du dépôt de ce site s'il est différent.
+//  Un seul bouton : il met à jour ce site ET celui de Luka, en un clic.
+//  « relais » = adresse du relais Cloudflare (se termine par .workers.dev).
 // =====================================================================
 
 const MISE_A_JOUR = [
-  { libelle: "Mettre à jour ce site",           url: "https://github.com/tuzette/natation-suivi/actions/workflows/maj-ffn.yml" },
-  { libelle: "Mettre à jour le site de Luka",   url: "https://github.com/tuzette/natation-luka/actions/workflows/maj-ffn.yml" },
+  { libelle: "Mettre à jour les courses", relais: "https://natation-maj.A_REMPLACER.workers.dev" },
 ];
 
 /* ---------------------------------------------------------------------

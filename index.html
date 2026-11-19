@@ -178,6 +178,9 @@ td.moins { color: var(--encre-douce); font-family: var(--chiffre); }
 .maj { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: .75rem; }
 .maj a { display: inline-block; text-decoration: none; font-weight: 600; font-size: .95rem; padding: .55rem 1rem; border-radius: 6px; background: var(--bassin); color: var(--fond); }
 .maj a:hover { background: var(--bassin-2); }
+.maj button { font: inherit; font-weight: 600; font-size: .95rem; padding: .55rem 1rem; border: 0; border-radius: 6px; background: var(--bassin); color: var(--fond); cursor: pointer; }
+.maj button:hover:not(:disabled) { background: var(--bassin-2); }
+.maj button:disabled { opacity: .6; cursor: default; }
 .maj p { flex-basis: 100%; margin: 0; }
 footer { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; color: var(--encre-douce); font-size: .85rem; }
 
@@ -701,8 +704,50 @@ footer { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; color:
 
   // Boutons de mise à jour (définis dans donnees.js, absents du site de Luka)
   if (typeof MISE_A_JOUR !== "undefined" && MISE_A_JOUR.length) {
-    $("majBoutons").innerHTML = MISE_A_JOUR.map((m) => `<a href="${esc(m.url)}" target="_blank" rel="noopener">↻ ${esc(m.libelle)}</a>`).join("") +
-      `<p>Ouvre GitHub : clique ensuite sur « Run workflow ». Les nouvelles courses apparaissent sur le site 2 à 3 minutes après.</p>`;
+    const relais = MISE_A_JOUR.find((m) => m.relais);
+    if (relais) {
+      // Bouton en un clic : passe par le relais Cloudflare, qui lance la mise à jour sur GitHub
+      $("majBoutons").innerHTML = `<button type="button" id="majLancer">↻ ${esc(relais.libelle)}</button><p id="majEtat"></p>`;
+      const bouton = $("majLancer"), etat = $("majEtat");
+      let suivi = null;
+      const ecrire = (txt, occupe) => { etat.textContent = txt; bouton.disabled = occupe; };
+      const suivre = () => {
+        clearInterval(suivi);
+        const debut = Date.now();
+        ecrire("Mise à jour en cours… (2 à 3 minutes)", true);
+        suivi = setInterval(async () => {
+          try {
+            const r = await (await fetch(relais.relais + "/etat")).json();
+            if (r.statut !== "completed") {
+              if (Date.now() - debut > 15 * 60000) { clearInterval(suivi); ecrire("La mise à jour prend plus de temps que prévu. Recharge la page plus tard.", false); }
+              return;
+            }
+            clearInterval(suivi);
+            if (r.conclusion === "success") {
+              ecrire("Mise à jour terminée. Les nouvelles courses s'affichent d'ici 1 à 2 minutes : recharge alors la page.", false);
+            } else {
+              ecrire("La mise à jour a échoué. Tu peux réessayer un peu plus tard.", false);
+            }
+          } catch (e) { /* coupure réseau passagère : on réessaie au tour suivant */ }
+        }, 15000);
+      };
+      bouton.onclick = async () => {
+        ecrire("Lancement…", true);
+        try {
+          const r = await (await fetch(relais.relais + "/lancer", { method: "POST" })).json();
+          if (r.ok || r.raison === "en_cours") suivre();
+          else if (r.raison === "trop_tot") ecrire("Une mise à jour vient d'être faite. Réessaie dans quelques minutes.", false);
+          else ecrire("La mise à jour n'a pas pu être lancée. Réessaie plus tard.", false);
+        } catch (e) {
+          ecrire("Le service de mise à jour ne répond pas. Réessaie plus tard.", false);
+        }
+      };
+      // Une mise à jour déjà en cours (lancée depuis un autre appareil) ?
+      fetch(relais.relais + "/etat").then((r) => r.json()).then((r) => { if (r.statut && r.statut !== "completed") suivre(); }).catch(() => {});
+    } else {
+      $("majBoutons").innerHTML = MISE_A_JOUR.map((m) => `<a href="${esc(m.url)}" target="_blank" rel="noopener">↻ ${esc(m.libelle)}</a>`).join("") +
+        `<p>Ouvre GitHub : clique ensuite sur « Run workflow ». Les nouvelles courses apparaissent sur le site 2 à 3 minutes après.</p>`;
+    }
   }
 
   const sel = $("choixNageur");
