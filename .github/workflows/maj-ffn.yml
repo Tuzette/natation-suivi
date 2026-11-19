@@ -1,10 +1,12 @@
 name: Mise à jour depuis la FFN
 
 on:
-  workflow_dispatch:       # lancé à la main : bouton « Run workflow » sur GitHub
+  workflow_dispatch:       # lancé par le bouton du site (via le relais Cloudflare)
 
 permissions:
   contents: write
+
+concurrency: maj-ffn       # jamais deux mises à jour en même temps
 
 jobs:
   maj:
@@ -26,4 +28,25 @@ jobs:
             git push
           else
             echo "Aucune nouvelle course."
+          fi
+      - name: Mettre à jour le site de Luka (ses courses uniquement)
+        env:
+          CLE: ${{ secrets.CLE_SITE_LUKA }}
+        run: |
+          git clone --depth 1 "https://x-access-token:${CLE}@github.com/Tuzette/natation-luka.git" luka
+          python - <<'PY'
+          lignes = open("donnees-ffn.js", encoding="utf-8").read().splitlines()
+          # on garde l'en-tête et uniquement les courses de Luka : aucun concurrent
+          garde = [l for l in lignes if not l.startswith("  { nageur:") or 'nageur: "luka"' in l]
+          open("luka/donnees-ffn.js", "w", encoding="utf-8").write("\n".join(garde) + "\n")
+          PY
+          cd luka
+          if [ -n "$(git status --porcelain donnees-ffn.js)" ]; then
+            git config user.name "maj-ffn"
+            git config user.email "maj-ffn@users.noreply.github.com"
+            git add donnees-ffn.js
+            git commit -m "Mise à jour automatique des courses FFN"
+            git push
+          else
+            echo "Site de Luka déjà à jour."
           fi
