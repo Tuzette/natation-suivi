@@ -338,7 +338,7 @@ const WEBCONFRONTATION = {
 // =====================================================================
 
 const MISE_A_JOUR = [
-  { libelle: "Mettre à jour les courses", relais: "https://natation-maj.A_REMPLACER.workers.dev" },
+  { libelle: "Mettre à jour les courses", relais: "https://natation-maj.audrey-amstuz.workers.dev" },
 ];
 
 /* ---------------------------------------------------------------------
